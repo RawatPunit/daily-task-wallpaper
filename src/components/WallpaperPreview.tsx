@@ -5,6 +5,7 @@ import { Download, Share2, Check } from 'lucide-react';
 import { Note } from '@/context/NotesContext';
 import { cn } from '@/lib/utils';
 import { generateWallpaper } from '@/utils/wallpaperGenerator';
+import { toast } from '@/hooks/use-toast';
 
 interface WallpaperPreviewProps {
   note: Note;
@@ -20,7 +21,16 @@ const WallpaperPreview: React.FC<WallpaperPreviewProps> = ({
   const previewRef = useRef<HTMLDivElement>(null);
 
   const handleGenerateWallpaper = async () => {
-    if (!previewRef.current) return;
+    if (!previewRef.current) {
+      toast({
+        title: "Error",
+        description: "Could not find preview element to capture.",
+        variant: "destructive"
+      });
+      return;
+    }
+    
+    if (isGenerating) return; // Prevent multiple clicks
     
     setIsGenerating(true);
     
@@ -34,6 +44,11 @@ const WallpaperPreview: React.FC<WallpaperPreviewProps> = ({
       }, 2000);
     } catch (error) {
       console.error('Failed to generate wallpaper:', error);
+      toast({
+        title: "Error",
+        description: "Failed to generate wallpaper. Please try again.",
+        variant: "destructive"
+      });
     } finally {
       setIsGenerating(false);
     }
@@ -90,6 +105,10 @@ const WallpaperPreview: React.FC<WallpaperPreviewProps> = ({
             <>
               <Check size={18} />
               <span>Saved!</span>
+            </>
+          ) : isGenerating ? (
+            <>
+              <span className="animate-pulse">Processing...</span>
             </>
           ) : (
             <>
